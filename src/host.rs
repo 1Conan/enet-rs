@@ -7,6 +7,7 @@ use enet_sys::{
     enet_host_bandwidth_limit, enet_host_channel_limit, enet_host_check_events, enet_host_connect,
     enet_host_destroy, enet_host_flush, enet_host_service, ENetEvent, ENetHost, ENetPeer,
     ENET_PROTOCOL_MAXIMUM_CHANNEL_COUNT,
+    enet_host_compress_with_range_coder, enet_crc32,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -201,6 +202,17 @@ impl<T> Host<T> {
 
         Ok(Peer::new(res))
     }
+
+    /// Enables compression
+    pub fn enable_compression(&mut self) {
+        unsafe { enet_host_compress_with_range_coder(self.inner); }
+    }
+
+    /// Enable checksum checking
+    pub fn enable_checksum(&mut self) {
+        unsafe { (*self.inner).checksum = Some(enet_crc32); }
+    }
+
 }
 
 impl<T> Drop for Host<T> {
