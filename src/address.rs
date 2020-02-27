@@ -1,8 +1,6 @@
 use std::ffi::CString;
 use std::net::{Ipv4Addr, SocketAddrV4};
 
-use byteorder::{NetworkEndian, ReadBytesExt};
-
 use crate::Error;
 
 use enet_sys::ENetAddress;
@@ -23,7 +21,7 @@ impl Address {
 
     /// Create a new address from a given hostname.
     pub fn from_hostname(hostname: &CString, port: u16) -> Result<Address, Error> {
-        use enet_sys::{enet_address_set_host};
+        use enet_sys::enet_address_set_host;
 
         let mut addr = ENetAddress { host: 0, port };
 
@@ -52,10 +50,7 @@ impl Address {
 
     pub(crate) fn to_enet_address(&self) -> ENetAddress {
         ENetAddress {
-            host: (&self.ip().octets() as &[u8])
-                .read_u32::<NetworkEndian>()
-                .unwrap()
-                .to_be(),
+            host: u32::from_be_bytes(self.ip().octets()).to_be(),
             port: self.port(),
         }
     }
@@ -70,6 +65,12 @@ impl Address {
             ),
             addr.port,
         )
+    }
+}
+
+impl From<SocketAddrV4> for Address {
+    fn from(addr: SocketAddrV4) -> Address {
+        Address { addr }
     }
 }
 
